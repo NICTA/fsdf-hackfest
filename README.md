@@ -4,7 +4,7 @@ Welcome to Envirohack
 Envirohack is a one-day [hackfest](http://en.wikipedia.org/wiki/Hackfest) for developing software which uses Australian geospatial environmental data sets and services.
 
 Data sets and services that will be featured on the day include ones from Geoscience Australia,
-Department of Environment, Department of Agriculture, Bureau of Meteorology, Australian Bureau of Statistics and CSIRO.
+Department of Environment, Department of Agriculture, Bureau of Meteorology, Australian Bureau of Statistics, PSMA and CSIRO.
 
 The event is on Friday 29 Nov and is being run by the Australian Federal Government's [Office of Spatial 
 Policy (OSP)](http://spatial.gov.au/) and [National ICT Australia (NICTA)](http://www.nicta.com.au/).
