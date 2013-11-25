@@ -1,0 +1,229 @@
+<!doctype html>
+
+<html>
+<head>
+  <title>Where am I in Australia?</title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <style>
+.feature {
+  fill: steelblue;
+}
+
+.property {
+  fill: white;
+  stroke: steelblue;
+  text-anchor: middle;
+  font-size: 1.5em;
+  font-weight: 900;
+}
+
+.point {
+  fill: IndianRed;
+}
+
+  </style>
+</head>
+
+<body>
+  <script>
+/* A simple function to turn a JSON object into a query string
+   For a more complete function use something like Jquery's $.param() */
+function queryString(obj){
+  var l = [];
+  for(key in obj) {
+    l.push(key + "=" + obj[key]);
+  }
+  return "?" + l.join("&");
+}
+
+/* Function to convert a list of lat lngs into a geoJSON object */
+function points2geojson(points) {
+  var geojson = {
+    type: "FeatureCollection",
+    features: [],
+  };
+
+  points.forEach(function(point) {
+    geojson.features.push({
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": point}
+    });
+  });
+
+  return geojson;
+}
+
+/* The SVG Map object useful for
+   displaying geoJSON features as SVG */
+function svgMap(w, h) {
+  var path, svg;
+
+  /* Create an SVG element with given width and height
+     create a projection for the map */
+  this.create = function(w, h) {
+    // Store width and height
+    this.width = w;
+    this.height = h;
+
+    // Create SVG canvas
+    svg = d3.select("body").append("svg")
+      .attr("width", this.width)
+      .attr("height", this.height);
+
+    // Create a projection
+    this.projection = d3.geo.equirectangular();
+
+    path = d3.geo.path()
+      .projection(this.projection);
+  }
+
+  /* Draw the features in the given geoJSON object */
+  this.drawFeatures = function(geojson) {
+    var width = this.width,
+        height = this.height;
+
+    // Normalize the scale
+    this.projection
+      .scale(1)
+      .translate([0, 0]);
+
+    // Scale the projection to the geojson features
+    var b = path.bounds(geojson),
+      s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+      t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+
+    this.projection
+        .scale(s)
+        .translate(t);
+    
+    // Features are a geojson features
+    var features = svg.selectAll("path.feature")
+        .data(geojson.features);
+
+    // Features are assigned SVG paths on creation
+    features.enter().append("svg:path")
+      .attr("class", "feature");
+
+    // Features are drawn using the projected path
+    features
+      .attr("d", path);
+  }
+
+  /* Display the properties of the features from a given geoJSON object */
+  this.displayProperty = function(geojson, property) {
+    var width = this.width,
+        height = this.height;
+
+    // Labels are for a set of geojson feature data
+    var labels = svg.selectAll("text.property")
+        .data(geojson.features);
+
+    // Labels are assigned text elements on creation
+    labels.enter().append("svg:text")
+      .attr("class", "property")
+
+    // Labels will be centered on the feature's path
+    // and will have the given property as its text
+    labels
+      .attr("x", function(d) { return path.centroid(d)[0]; }) // centre label on feature horizontally
+      .attr("y", function(d) { return path.centroid(d)[1]; }) // centre label on feature vertically
+      .text(function(d) { return d.properties[property]; });
+  }
+
+  this.displayPoints = function(geojson) {
+    var projection = this.projection;
+
+    // Points are a series of geoJSON points
+    var points = svg.selectAll("circle.point")
+      .data(geojson.features);
+
+    // Points are assigned circle elements on creation
+    points.enter().append("svg:circle")
+      .attr("class", "point");
+
+    // Points are located at their projected location
+    points
+      .attr("r", 5)
+      .attr("cx", function(d) { return projection(d.geometry.coordinates)[0]; })
+      .attr("cy", function(d) { return projection(d.geometry.coordinates)[1]; });
+  }
+}
+
+var boundaries = [
+  {
+    type: "LGA",
+    name: "lga_name11",
+    typeName: "admin_bnds_abs:LGA_2011_AUST",
+  },
+  {
+    type: "SA1",
+    name: "sa1_name11",
+    typeName: "admin_bnds_abs:SA1_2011_AUST",
+  },
+  {
+    type: "SA2",
+    name: "sa2_name11",
+    typeName: "admin_bnds_abs:SA2_2011_AUST",
+  },
+  {
+    type: "SA3",
+    name: "sa3_name11",
+    typeName: "admin_bnds_abs:SA3_2011_AUST",
+  },
+  {
+    type: "SA4",
+    name: "sa4_name11",
+    typeName: "admin_bnds_abs:SA4_2011_AUST",
+  },
+  {
+    type: "State",
+    name: "ste_name11",
+    typeName: "admin_bnds_abs:STE_2011_AUST",
+  },
+]
+
+// Create the maps
+for (var b in boundaries) {
+  var boundary = boundaries[b];
+
+  var map = new svgMap();
+  map.create(400, 400);
+
+  boundary.map = map;
+}
+
+// Retrieve the user's location
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(displayLocation); // update the map when the user's location changes
+}
+
+/* Display the user's location using the SVG map
+   and data retrieved from the WFS server */
+function displayLocation(position) {
+  console.log(position);
+
+  boundaries.forEach(function(boundary) {
+    // Build the queryfor the features containing the user
+    var host = "http://geospace.research.nicta.com.au:8080/admin_bnds/ows";
+    var geoRequest = {
+      "service": "WFS",
+      "request": "GetFeature",
+      "cql_filter": "CONTAINS(the_geom, POINT("+position.coords.latitude+" "+position.coords.longitude+"))", // Return the geometry containing the user
+      "typeName": boundary.typeName, // Display the state the user is in
+      "outputFormat": "application/json",
+      "srsName": "EPSG:4326", // Make sure the coordinates are correct for geoJSON (lng, lat)
+    };
+
+    // Perform the HTTP request
+    d3.json(host+queryString(geoRequest), function(geojson) {
+      boundary.map.drawFeatures(geojson); // Draw the state the user is in
+      boundary.map.displayPoints(points2geojson([[position.coords.longitude, position.coords.latitude]])); // Draw the location of the user
+      boundary.map.displayProperty(geojson, boundary.name); // Add labels
+    });
+  })
+};
+  </script>
+</body>
+</html>
+
+
