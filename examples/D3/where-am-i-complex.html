@@ -5,8 +5,21 @@
   <title>Where am I in Australia?</title>
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <style>
+div.map {
+  display: inline-block;
+}
+
+div.map > h1 {
+  text-align: center;
+  color: #333;
+}
+
 .feature {
   fill: steelblue;
+}
+
+.prev-boundary {
+  fill: lightsteelblue;
 }
 
 .property {
@@ -55,20 +68,34 @@ function points2geojson(points) {
 
 /* The SVG Map object useful for
    displaying geoJSON features as SVG */
-function svgMap(w, h) {
-  var path, svg;
+function svgMap(w, h, title) {
+  var path, svg, map, overlay;
 
   /* Create an SVG element with given width and height
      create a projection for the map */
-  this.create = function(w, h) {
+  this.create = function(w, h, title) {
     // Store width and height
     this.width = w;
     this.height = h;
 
+    // Create div
+    var div = d3.select("body").append("div")
+      .attr("class", "map");
+
+    // Create title
+    var title = div.append("h1")
+      .text(title);
+
     // Create SVG canvas
-    svg = d3.select("body").append("svg")
+    svg = div.append("svg")
       .attr("width", this.width)
       .attr("height", this.height);
+
+    // Create a group for the maps
+    map = svg.append("svg:g");
+    
+    // Create a group for the overlays
+    overlay = svg.append("svg:g");
 
     // Create a projection
     this.projection = d3.geo.equirectangular();
@@ -78,31 +105,33 @@ function svgMap(w, h) {
   }
 
   /* Draw the features in the given geoJSON object */
-  this.drawFeatures = function(geojson) {
+  this.drawFeatures = function(geojson, clss, noscale) {
     var width = this.width,
         height = this.height;
 
-    // Normalize the scale
-    this.projection
-      .scale(1)
-      .translate([0, 0]);
+    if (!noscale) {
+      // Normalize the scale
+      this.projection
+        .scale(1)
+        .translate([0, 0]);
 
-    // Scale the projection to the geojson features
-    var b = path.bounds(geojson),
-      s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
-      t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+      // Scale the projection to the geojson features
+      var b = path.bounds(geojson),
+        s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+        t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
 
-    this.projection
-        .scale(s)
-        .translate(t);
-    
+      this.projection
+          .scale(s)
+          .translate(t);
+    }
+
     // Features are a geojson features
-    var features = svg.selectAll("path.feature")
+    var features = map.selectAll("path."+ clss? clss : "feature")
         .data(geojson.features);
 
     // Features are assigned SVG paths on creation
     features.enter().append("svg:path")
-      .attr("class", "feature");
+      .attr("class", clss? clss : "feature");
 
     // Features are drawn using the projected path
     features
@@ -115,7 +144,7 @@ function svgMap(w, h) {
         height = this.height;
 
     // Labels are for a set of geojson feature data
-    var labels = svg.selectAll("text.property")
+    var labels = overlay.selectAll("text.property")
         .data(geojson.features);
 
     // Labels are assigned text elements on creation
@@ -134,7 +163,7 @@ function svgMap(w, h) {
     var projection = this.projection;
 
     // Points are a series of geoJSON points
-    var points = svg.selectAll("circle.point")
+    var points = overlay.selectAll("circle.point")
       .data(geojson.features);
 
     // Points are assigned circle elements on creation
@@ -154,31 +183,37 @@ var boundaries = [
     type: "LGA",
     name: "LGA_NAME11",
     typeName: "admin_bnds:LGA_2011_AUST",
+    drawPrev: false,
   },
   {
     type: "SA1",
     name: "SA1_NAME11",
     typeName: "admin_bnds:SA1_2011_AUST",
+    drawPrev: false,
   },
   {
     type: "SA2",
     name: "SA2_NAME11",
     typeName: "admin_bnds:SA2_2011_AUST",
+    drawPrev: true,
   },
   {
     type: "SA3",
     name: "SA3_NAME11",
     typeName: "admin_bnds:SA3_2011_AUST",
+    drawPrev: true,
   },
   {
     type: "SA4",
     name: "SA4_NAME11",
     typeName: "admin_bnds:SA4_2011_AUST",
+    drawPrev: true,
   },
   {
     type: "State",
     name: "STE_NAME11",
     typeName: "admin_bnds:STE_2011_AUST",
+    drawPrev: true,
   },
 ]
 
@@ -187,7 +222,7 @@ for (var b in boundaries) {
   var boundary = boundaries[b];
 
   var map = new svgMap();
-  map.create(400, 400);
+  map.create(400, 400, boundary.type);
 
   boundary.map = map;
 }
@@ -202,7 +237,7 @@ if (navigator.geolocation) {
 function displayLocation(position) {
   console.log(position);
 
-  boundaries.forEach(function(boundary) {
+  boundaries.forEach(function(boundary, b) {
     // Build the query for the features containing the user
     var host = "http://envirohack.research.nicta.com.au/admin_bnds_abs/ows";
     var geoRequest = {
@@ -216,9 +251,17 @@ function displayLocation(position) {
 
     // Perform the HTTP request
     d3.json(host+queryString(geoRequest), function(geojson) {
-      boundary.map.drawFeatures(geojson); // Draw the state the user is in
-      boundary.map.displayPoints(points2geojson([[position.coords.longitude, position.coords.latitude]])); // Draw the location of the user
-      boundary.map.displayProperty(geojson, boundary.name); // Add labels
+      boundary.geojson = geojson;
+
+      // Draw this boundary
+      boundary.map.drawFeatures(geojson);
+      // Draw the shape for the previous boundary inside this boundary
+      if (boundary.drawPrev)
+        boundary.map.drawFeatures(boundaries[b-1].geojson, "prev-boundary", true);
+      // Draw the location of the user
+      boundary.map.displayPoints(points2geojson([[position.coords.longitude, position.coords.latitude]]));
+      // Add Labels
+      boundary.map.displayProperty(geojson, boundary.name);
     });
   })
 };
