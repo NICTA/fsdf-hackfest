@@ -20,6 +20,8 @@ div.map > h1 {
 
 .prev-boundary {
   fill: lightsteelblue;
+  stroke: steelblue;
+  steok-width: 2px;
 }
 
 .property {
@@ -126,12 +128,12 @@ function svgMap(w, h, title) {
     }
 
     // Features are a geojson features
-    var features = map.selectAll("path."+ clss? clss : "feature")
+    var features = map.selectAll("path."+clss)
         .data(geojson.features);
 
     // Features are assigned SVG paths on creation
     features.enter().append("svg:path")
-      .attr("class", clss? clss : "feature");
+      .attr("class", clss);
 
     // Features are drawn using the projected path
     features
@@ -254,7 +256,7 @@ function displayLocation(position) {
       boundary.geojson = geojson;
 
       // Draw this boundary
-      boundary.map.drawFeatures(geojson);
+      boundary.map.drawFeatures(geojson, "feature");
       // Draw the shape for the previous boundary inside this boundary
       if (boundary.drawPrev)
         boundary.map.drawFeatures(boundaries[b-1].geojson, "prev-boundary", true);
