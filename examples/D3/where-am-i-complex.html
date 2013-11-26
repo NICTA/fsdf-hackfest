@@ -152,33 +152,33 @@ function svgMap(w, h) {
 var boundaries = [
   {
     type: "LGA",
-    name: "lga_name11",
-    typeName: "admin_bnds_abs:LGA_2011_AUST",
+    name: "LGA_NAME11",
+    typeName: "admin_bnds:LGA_2011_AUST",
   },
   {
     type: "SA1",
-    name: "sa1_name11",
-    typeName: "admin_bnds_abs:SA1_2011_AUST",
+    name: "SA1_NAME11",
+    typeName: "admin_bnds:SA1_2011_AUST",
   },
   {
     type: "SA2",
-    name: "sa2_name11",
-    typeName: "admin_bnds_abs:SA2_2011_AUST",
+    name: "SA2_NAME11",
+    typeName: "admin_bnds:SA2_2011_AUST",
   },
   {
     type: "SA3",
-    name: "sa3_name11",
-    typeName: "admin_bnds_abs:SA3_2011_AUST",
+    name: "SA3_NAME11",
+    typeName: "admin_bnds:SA3_2011_AUST",
   },
   {
     type: "SA4",
-    name: "sa4_name11",
-    typeName: "admin_bnds_abs:SA4_2011_AUST",
+    name: "SA4_NAME11",
+    typeName: "admin_bnds:SA4_2011_AUST",
   },
   {
     type: "State",
-    name: "ste_name11",
-    typeName: "admin_bnds_abs:STE_2011_AUST",
+    name: "STE_NAME11",
+    typeName: "admin_bnds:STE_2011_AUST",
   },
 ]
 
@@ -203,8 +203,8 @@ function displayLocation(position) {
   console.log(position);
 
   boundaries.forEach(function(boundary) {
-    // Build the queryfor the features containing the user
-    var host = "http://envirohack.research.nicta.com.au:8080/admin_bnds/ows";
+    // Build the query for the features containing the user
+    var host = "http://envirohack.research.nicta.com.au/admin_bnds_abs/ows";
     var geoRequest = {
       "service": "WFS",
       "request": "GetFeature",

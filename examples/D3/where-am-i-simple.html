@@ -123,13 +123,13 @@ if (navigator.geolocation) {
 function displayLocation(position) {
   console.log(position);
 
-  // Build the queryfor the features containing the user
-  var host = "http://envirohack.research.nicta.com.au:8080/admin_bnds/ows";
+  // Build the query for the features containing the user
+  var host = "http://envirohack.research.nicta.com.au/admin_bnds_abs/ows";
   var geoRequest = {
     "service": "WFS",
     "request": "GetFeature",
     "cql_filter": "CONTAINS(the_geom, POINT("+position.coords.latitude+" "+position.coords.longitude+"))", // Return the geometry containing the user
-    "typeName": "admin_bnds_abs:STE_2011_AUST", // Display the state the user is in
+    "typeName": "admin_bnds:STE_2011_AUST", // Display the state the user is in
     "outputFormat": "application/json",
     "srsName": "EPSG:4326", // Make sure the coordinates are correct for geoJSON (lng, lat)
   };
@@ -137,7 +137,7 @@ function displayLocation(position) {
   // Perform the HTTP request
   d3.json(host+queryString(geoRequest), function(geojson) {
     map.drawFeatures(geojson); // Draw the state the user is in
-    map.displayProperty(geojson, "ste_name11"); // Add labels
+    map.displayProperty(geojson, "STE_NAME11"); // Add labels
   });
 };
   </script>
