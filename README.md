@@ -5,22 +5,22 @@ Here is some advice and information for your participation in the Hackfest.
 
 For data sets, code, details of the hackfest, etc go to [https://github.com/NICTA/fsdf-hackfest/wiki](https://github.com/NICTA/fsdf-hackfest/wiki).
 
-Getting Started
+Getting Started on the Day
 ---
 
-??To enable fast and easy collaboration at the Hackfest, NICTA has set up a GitHub organisation under the name “?????”.  We assume you already own a GitHub account, so this should get you started quickly.
+To enable fast and easy collaboration at the Hackfest, NICTA has set up a GitHub organisation under the name “?????”.  We assume you already own a GitHub account, so this should get you started quickly.
 
-To jointly work on a repository under “WebRTCSydneyHackfest”:
+To jointly work on a repository under “fsdf-hackfest”:
 
-??* Ask a Hackfest organiser to add you as a participant to the organisation.
+* Ask a Hackfest organiser to add you as a participant to the organisation.
 * Decide what you want to code on.
-*	Create a new repository or fork an existing open source repository into the organisation through the GitHub Website.
-*	Clone the repository to your laptop and start hacking.
+* Create a new repository or fork an existing open source repository into the organisation through the GitHub Website.
+* Clone the repository to your laptop and start hacking.
 
 Licenses and Intellectual Property (IP)
 ---
 
-Although NICTA supports and organises the WebRTC Hackfest, NICTA does not claim ownership or control of the code in any GitHub repositories created under this GitHub organisation if that code was created by coders who are neither NICTA staff nor NICTA students.
+Although NICTA supports and organises the FSDF Enviro-Hackfest, NICTA does not claim ownership or control of the code in any GitHub repositories created under this GitHub organisation if that code was created by coders who are neither NICTA staff nor NICTA students.
 
 The creation of the WebRTCSydneyHackfest GitHub organisation is merely a means to simplify collaboration and to have a record of the outcome of the Hackfest. So if you are external to NICTA, you can be confident that NICTA will not claim ownership of the IP rights of the code that you contribute.
 
