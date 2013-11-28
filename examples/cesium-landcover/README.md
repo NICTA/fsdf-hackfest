@@ -1,45 +1,30 @@
-# Leaflet Project Template
+# Cesium Project Template
 
-![Screen Grab](grab.jpg)
+![Screen Grab](screen-grab.jpg)
 
 ### Introduction
 
-This is a [Cordova 3.2](http://cordova.apache.org/) template project using the following javascript libraries...
-* [Leaflet](http://leafletjs.com/)
-* [Bootstrap](http://getbootstrap.com/)
-* [Angular JS](http://angularjs.org/)
+This is a [Cesium](http://cesiumjs.org/) template project using the following javascript libraries...
+* [Google Charts](https://developers.google.com/chart/)
 * [jQuery](http://jquery.com/)
 
 ### Get up and running
 
 #### Build Environment
 
-* [Node](http://nodejs.org/) (required for Cordova CLI)
-* [Android SDK](http://developer.android.com/sdk/index.html)
-* [Cordova CLI](http://cordova.apache.org/docs/en/3.2.0/guide_cli_index.md.html#The%20Command-Line%20Interface)
+* Follow the instructions at their [github page]() to get up and running
 
 #### Install
 
-Create a new Cordova CLI project
+Once you have cesium up and running
 
-    cordova create cordova-leaflet
-    cd cordova-leaflet
-    
-    # Install the android platform
-    cordova platform add android
+* Copy the sample code in this folder into a folder under Apps in your cesium folder
+* Start up their server if not running usually with command similar to the one below
 
-    # Install the geolocation plugin
-    cordova plugin add org.apache.cordova.geolocation
-    
-    # Copy the www dir into the project root e.g.
-    # cp -R ~/Downloads/www ./www
-    
-    # Run locally in a browser
-    google-chrome www/index.html
-    
-    # Run on device
-    cordova run android
-    
-    # Run on emulator
+    ./Tools/apache-ant-1.8.2/bin/ant release runServer
+
+* Run land_cover.html from their server.  
+
+    http://localhost:8080/Apps/sample/land_cover.html
 
 
