@@ -5,19 +5,20 @@ Here is some advice and information for your participation in the Hackfest.
 
 For data sets, code, details of the hackfest, etc go to [https://github.com/NICTA/fsdf-hackfest/wiki](https://github.com/NICTA/fsdf-hackfest/wiki).
 
-##Getting Started
+Getting Started
+---
 
-To enable fast and easy collaboration at the Hackfest, NICTA has set up a GitHub organisation under the name “WebRTCSydneyHackfest”. We assume you already own a GitHub account, so this should get you started quickly.
+??To enable fast and easy collaboration at the Hackfest, NICTA has set up a GitHub organisation under the name “?????”.  We assume you already own a GitHub account, so this should get you started quickly.
 
 To jointly work on a repository under “WebRTCSydneyHackfest”:
 
-Ask a Hackfest organiser to add you as a participant to the organisation.
-Decide what you want to code on.
-Create a new repository or fork an existing open source repository into the organisation through the GitHub Website.
-Clone the repository to your laptop and start hacking.
+??* Ask a Hackfest organiser to add you as a participant to the organisation.
+* Decide what you want to code on.
+*	Create a new repository or fork an existing open source repository into the organisation through the GitHub Website.
+*	Clone the repository to your laptop and start hacking.
 
-
-##Licenses and Intellectual Property (IP)
+Licenses and Intellectual Property (IP)
+---
 
 Although NICTA supports and organises the WebRTC Hackfest, NICTA does not claim ownership or control of the code in any GitHub repositories created under this GitHub organisation if that code was created by coders who are neither NICTA staff nor NICTA students.
 
@@ -29,4 +30,4 @@ If you clone an existing open source repository, it may be necessary for you to 
 
 We also suggest you add the names of all contributors in a copyright statement co-located with the code.
 
-If you would like to store your projects on this github server during the hackfest, please feel free to create a folder in the  envirohack_projects folder.  
+
