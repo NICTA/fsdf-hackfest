@@ -1,0 +1,35 @@
+Class #,Red,Green,Blue,ISO Class,Label
+1,130,130,130,Primarily Non-Vegetated_Artificial Surfaces & Associated Areas_Non Built-Up_Extraction Sites__,Extraction Sites
+2,0,0,0,Primarily Non-Vegetated_Bare Areas____,Bare Areas
+3,0,70,173,Primarily Non-Vegetated_Waterbodies_Water___,Inland Waterbodies
+4,150,225,255,Primarily Non-Vegetated_Waterbodies_Water___Brine,Salt Lakes
+5,90,36,90,Primarily Vegetated_Cultivated & Managed Lands_Herbaceous_Graminoids_Irrigated_,Irrigated Cropping
+6,166,38,170,Primarily Vegetated_Cultivated & Managed Lands_Herbaceous_Graminoids_Irrigated_Pasture,Irrigated Pasture
+7,183,18,52,Primarily Vegetated_Cultivated & Managed Lands_Herbaceous_Graminoids_Irrigated_Sugar,Irrigated Sugar
+8,198,141,153,Primarily Vegetated_Cultivated & Managed Lands_Herbaceous_Graminoids_Rainfed_,Rainfed Cropping
+9,226,194,199,Primarily Vegetated_Cultivated & Managed Lands_Herbaceous_Graminoids_Rainfed_Pasture,Rainfed Pasture
+10,219,77,105,Primarily Vegetated_Cultivated & Managed Lands_Herbaceous_Graminoids_Rainfed_Sugar,Rainfed Sugar
+11,0,178,160,Primarily Vegetated_Natural & Semi-Natural Aquatic Vegetation____,Wetlands
+12,255,255,115,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Forbs_Open_,Forbs - Open
+13,255,255,203,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Forbs_Sparse_,Forbs - Sparse
+14,255,121,0,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Closed_Tussock Grasses,Tussock Grasses - Closed
+15,255,255,255,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Open_Alpine,Alpine Grasses - Open
+16,255,255,115,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Open_Hummock Grasses,Hummock Grasses - Open
+17,225,225,225,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Open_Sedges,Sedges - Open
+18,255,169,82,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Open_Tussock Grasses,Tussock Grasses - Open
+19,247,232,89,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Scattered_,Grassland - Scattered
+20,251,206,146,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Scattered_Tussock Grasses,Tussock Grasses - Scattered
+21,249,229,38,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Sparse_,Grassland - Sparse
+22,255,255,203,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Sparse_Hummock Grasses,Hummock Grasses - Sparse
+23,253,196,128,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Herbaceous_Graminoids_Sparse_Tussock Grasses,Tussock Grasses - Sparse
+24,175,136,80,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Closed_,Shrubs - Closed
+25,193,168,117,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Open_,Shrubs - Open
+26,125,50,40,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Open_Chenopods,Chenopod Shrubs - Open
+27,221,204,165,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Scattered_,Shrubs - Scattered
+28,234,170,122,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Scattered_Chenopods,Chenopod Shrubs - Scattered
+29,209,191,145,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Sparse_,Shrubs - Sparse
+30,140,95,70,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Shrubs_Sparse_Chenopods,Chenopod Shrubs - Sparse
+31,0,133,0,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Trees_Closed_,Trees - Closed
+32,20,194,0,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Trees_Open_,Trees - Open
+33,214,255,138,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Trees_Scattered_,Trees - Scattered
+34,186,232,96,Primarily Vegetated_Natural & Semi-Natural Terrestrial Vegetation_Woody_Trees_Sparse_,Trees - Sparse

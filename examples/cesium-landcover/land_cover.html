@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">  <!-- Use Chrome Frame in IE -->
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="description" content="Example of getting land use data">
+    <title>Land Use Example</title>
+
+    <!-- Copyright National ICT Australia Limited (NICTA) 2013.  -->
+
+    <!-- jQuery -->
+    <script src="http://subspace.nicta.com.au/apps/shared/third_party/jquery-1.8.3.min.js"></script>
+
+    <!-- jQuery UI -->
+    <link rel="stylesheet" href="http://subspace.nicta.com.au/apps/shared/third_party/jquery-ui-1.9.2.custom/css/smoothness/jquery-ui-1.9.2.custom.min.css" />
+    <script src="http://subspace.nicta.com.au/apps/shared/third_party/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.js"></script>
+
+    <script type="text/javascript" src="http://subspace.nicta.com.au/apps/shared/third_party/jquery.csv-0.71.min.js"></script>
+
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <!-- Cesium -->
+    <script type="text/javascript" src="../../Build/Cesium/Cesium.js"></script>
+    <link rel="stylesheet" href="../CesiumViewer/CesiumViewer.css" media="screen">
+
+    <script src="drawExtent.js"></script>
+    
+</head>
+<body>
+<style>
+    .fullSize {
+        font-family: sans-serif;
+        font-size: 16px;
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: none;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+    .ui-menu { 
+        width: 150px; 
+        top:10px; 
+        left: 10px;        
+        margin: 10px;
+        font-family: sans-serif;
+        font-size: 9pt;
+    }
+    .chart {
+        display: block;
+        float: right;
+        padding: 7px;
+        border-radius: 5px;
+        margin: 10px 15px;
+    }
+    .usage {
+        display: block;
+        float: left;
+        width: 240px;
+        padding: 7px;
+        border-radius: 5px;
+        margin: 10px 15px;
+        font-family: sans-serif;
+        font-size: 10pt;
+        color: #eee;
+    }
+</style>
+
+<div id="cesiumContainer" class="fullSize"></div>
+<div id="menuDiv" class="ui-menu"><button id='button'>Make a Selection</button></div>
+<div id="chart_div" class="chart"></div>
+
+<div id= "usage_block" class="usage" style="visibility: hidden">
+    <h2>Selecting</h2>
+    <p>Click on the globe and drag to select a geographic region.</p>
+</div>
+
+<script id="cesium_sandcastle_script">
+/*global $*/
+(function () {
+    "use strict";
+
+    //Set up the cesiumViewer and get useful members
+    var options = {
+        timeline: false,
+        animation: false,
+    };
+    var viewer = new Cesium.Viewer('cesiumContainer', options);
+    var scene = viewer.scene;
+    var cb = scene.getPrimitives().getCentralBody();
+    var ellipsoid = Cesium.Ellipsoid.WGS84;
+
+    //Set the camera to look at Australia
+    var e = new Cesium.Cartesian3(-5802994.915164497, 5694926.250766534, -5132847.621559966);
+    var v = new Cesium.Cartesian3(0.5481376741150558, -0.5487699126893898, 0.6311867181291257);
+    var u = new Cesium.Cartesian3(-0.49546208477586695, 0.394948245543276, 0.7736492783502353);
+    scene.getCamera().controller.lookAt(e, Cesium.Cartesian3.add(e, v), u);
+
+    //Variables
+    var polygon;
+    var color_data;
+    var chart_data;
+    var hide_chart = true;
+
+    //Load the dialog with info about how to label and colour data
+    Cesium.when(Cesium.loadText('./DLCD_Colours_Labels.csv'), 
+        function(text) { 
+            var csv_data = $.csv.toArrays(text, {
+                onParseValue: $.csv.hooks.castToScalar
+            });
+            color_data = [];
+            chart_data = [['Land Use - 2010', 'Relative Amount']];
+            for (var i = 1; i < csv_data.length; i++) {
+                color_data.push(parseFloat(csv_data[i][1]));
+                color_data.push(parseFloat(csv_data[i][2]));
+                color_data.push(parseFloat(csv_data[i][3]));
+                color_data.push(255);
+                chart_data.push([csv_data[i][5], 0]);
+            }
+        });
+
+    /*
+    //This function can load the color table from an image, but is probably slightly out of date at this point
+    function loadColourGradient(url, slots) {
+        function callback(image) {
+            //create 2d canvas
+            $('body').append('<div id="grad_div"></div>');
+             $('<canvas/>', { 'id': 'gradCanvas', 'Width': 256, 'Height': 128, 'Style': "display: none" }).appendTo('#grad_div');
+            var grad_canvas = $('#gradCanvas')[0];
+            var ctx_g = grad_canvas.getContext('2d');
+            //get image to use for color array
+            ctx_g.drawImage(image, 0, 0, 256, 1);
+            var img_data = ctx_g.getImageData(0, 0, slots, 1);
+            color_data = img_data.data;
+        }
+
+        Cesium.when(Cesium.loadImage(url), callback);
+    };
+    loadColourGradient('../shared/images/rainbow_3.png', 35);
+*/
+
+    //set up the canvas for getting raster data and recoloring in javascript
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext && canvas.getContext('2d');
+    
+    //Create a new polygon to view the land cover data
+    function createPolygon(e) {
+        //Hide the old polygon and create a new one
+    	if (polygon !== undefined) {
+    		polygon.show = false;
+    	}
+    	polygon = new Cesium.ExtentPrimitive({
+    	    extent: e,
+    	    show: false
+    	});
+
+    	//set material for polygon
+    	var material = new Cesium.Material({
+    	    context: scene.getContext(),
+    	    fabric: {
+    	        type: 'Image',
+    	        uniforms: {
+    	            image: ''
+    	        }
+    	    }
+    	});
+    	polygon.material = material;
+    	scene.getPrimitives().add(polygon);
+
+        //Set up the query for the land cover layer in the wms
+        var bbox = '&bbox='+Cesium.Math.toDegrees(e.west)+','+Cesium.Math.toDegrees(e.south)+','+Cesium.Math.toDegrees(e.east)+','+Cesium.Math.toDegrees(e.north);
+        var layer = '&layers=DLCDv1_Class';
+        var wms_url = 'http://envirohack.research.nicta.com.au/geotopo_250k/wms?request=GetMap&service=WMS&version=1.1.1&srs=EPSG%3A4326&width=1024&height=1024&format=image%2Fpng';
+
+        //load the land use image
+        Cesium.when(Cesium.loadImage(wms_url + bbox + layer),
+            function (image) {
+                
+                //get the image values back from the context
+                var img_data = getImageValues(image);
+                //Update the chart data - must be called before recoloring the image
+                updateChartData(img_data);
+                //Recolour the image
+                recolorImage(img_data);
+                
+                //Create a new texture and assign it to the material
+                var tex = scene.getContext().createTexture2D({
+                    source: canvas,
+                    pixelFormat: Cesium.PixelFormat.RGB
+                });
+                material.uniforms["image"] = tex;
+
+                //Show the chart
+                hide_chart = false;
+                drawChart();
+                 
+                //And show the polygon
+                polygon.show = true;
+            });
+    }
+     
+    //Get the values back from an HTML5 image context
+    function getImageValues(img) {
+        
+        var data, width, height, length,  count = 0;
+            
+        height = canvas.height = img.height;
+        width = canvas.width = img.width;
+        context.drawImage(img, 0, 0);
+        
+        try {
+            data = context.getImageData(0, 0, width, height);
+        } catch(e) {
+            /* security error, img on diff domain */alert('x');
+            return;
+        }
+        return data;
+    }
+    
+    //Update the chart data based on binning the image values
+    function updateChartData(img_data)  {    
+        var length = img_data.data.length;  //pixel count * 4
+        
+        for (var i = 1; i < chart_data.length; i++) {
+            chart_data[i][1] = 0;
+        }
+
+        for (var i = 0; i < length; i += 4) {
+            if (img_data.data[i] > 0) {
+                (chart_data[img_data.data[i]][1])++;
+            }
+        }
+    }
+
+    //Recolor the raster data based on the colour scheme loaded earlier
+    function recolorImage(img_data)  {    
+        length = img_data.data.length;  //pixel count * 4
+        
+        for (var i = 0; i < length; i += 4) {
+            var idx = img_data.data[i];
+            if (idx > 0) {
+                for (var j = 0; j < 3; j++) {
+                    img_data.data[i+j] = color_data[(idx-1)*4+j];
+                }
+            }
+            else {
+                img_data.data[i+3] = 0;
+            }
+        }
+        
+        context.putImageData(img_data, 0, 0);
+    }
+    
+    // Handler for the callback from the extent drawing
+    var myHandler = function (e) {
+        document.getElementById('usage_block').style.visibility = 'hidden';
+        createPolygon(e);
+    };
+
+    //Function to carry out when Select button is clicked
+    $("#button").click(function () {
+        drawExtent(scene, ellipsoid, myHandler);
+        document.getElementById('usage_block').style.visibility = 'visible';
+    });
+
+
+    //Load the Google chart support
+    google.load("visualization", "1", { packages: ["corechart"] });
+
+    var chart_colors;
+
+    //The chart drawing function
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+
+        if (hide_chart)
+            return;
+        //Reformat the data
+        var data = google.visualization.arrayToDataTable(chart_data);
+        //Create a google colors string for the pie chart
+        if (chart_colors === undefined) {
+            chart_colors = [];
+        
+            for (var i = 0; i < color_data.length; i += 4) {
+                var str = "#";
+                for (var j = 0; j < 3; j++) {
+                    str += ("0" + color_data[i+j].toString(16)).substr(-2);
+                }
+                chart_colors.push(str);
+            }
+        }
+        //Set up the chart options
+        var options = {
+            title: 'Land Use',
+            legend: 'none',
+            pieSliceText: 'label',
+            width: 300,
+            height: 300,
+            colors: chart_colors
+        };
+
+        //Draw the chart to chart_div
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+    }
+
+ }());
+</script>
+</body>
+</html>
