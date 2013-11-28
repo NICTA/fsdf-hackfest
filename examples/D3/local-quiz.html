@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Local Quiz</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <style>
+svg {
+  text-anchor: middle;
+  font-weight: 900;
+}
+
+.background {
+  fill: none;
+  pointer-events: all;
+}
+
+#question {
+  fill: steelblue;
+  stroke: white;
+  font-size: 2em;
+  font-weight: 600;
+}
+
+#correct {
+  fill: lightseagreen;
+  stroke: white;
+  font-size: 5em;
+}
+
+#score {
+  stroke: white;
+  font-size: 3em;
+}
+
+#hover {
+  fill: lightskyblue;
+}
+  </style>
+  <body>
+    <script type="text/javascript">
+
+/*** HELPER FUNCTIONS, GLOBALS AND CONSTANTS ***/
+
+/* A simple function to turn a JSON object into a query string
+   For a more complete function use something like Jquery's $.param() */
+function queryString(obj) {
+  var l = [];
+  for(key in obj) {
+    l.push(key + "=" + obj[key]);
+  }
+  return "?" + l.join("&");
+}
+
+/* Shuffles the order of the given array. Used for shuffling the questions. */
+function shuffle(inputArray){
+  var temp, randIndex;
+  for (var i = inputArray.length - 1; i >= 0; i--) {
+    randIndex = Math.floor(Math.random() * (inputArray.length - 1))
+    temp = inputArray[randIndex];
+    inputArray[randIndex] = inputArray[i];
+    inputArray[i] = temp;
+  }
+  return inputArray;
+};
+
+// time in milliseconds used for transistion animations.
+// Lower values increase speed of all transitions.
+var TRANS_CONST = 1000;
+
+// URL for the census data, used to generate questions.
+var censusUrl = "data/2011Census_B02_AUST_SA4_long.csv";
+
+// Keeps track of the question number currently on.
+var qNum = 0;
+
+// URL for map data.
+var url = "http://envirohack.research.nicta.com.au/admin_bnds_abs/ows";
+// Request information for the map data.
+var request = {
+  "service": "WFS",
+  "request": "GetFeature",
+  "cql_filter": "GCC_NAME11 ='Greater Sydney'",
+  "typeName": "admin_bnds:SA4_2011_AUST",
+  "maxFeatures": 50,
+  "outputFormat": "application/json",
+  "srsName" : "EPSG:4326" // Required to ensure the lat/lon are the correct.
+};
+
+// Height and width of the svg plot for the map.
+var width = 960,
+    height = 800;
+
+// Store the currently selected data item/region.
+var selected = null; 
+
+// Stores only relevant stats from the csv for the regions plotted.
+var relevantStats = [];
+
+// Store the bank of questions generated.
+var questions = [];
+
+// Keeps the score of the player.
+var score = 0;
+
+// Correct answer points gained.
+var correctPoints = 3;
+
+// Incorrect answer points lost.
+var incorrectPoints = 1;
+
+// Used to store the target id for BFS.
+var targetUnitId;
+
+
+/** MAIN CODE **/
+
+// Create a projection.
+var projection = d3.geo.equirectangular()
+    .scale(1)
+    .translate([0, 0]);
+
+// Create a path.
+var path = d3.geo.path()
+    .projection(projection);
+
+// Create the SVG container for the map.
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("rect")
+    .attr("class", "background")
+    .attr("width", width)
+    .attr("height", height)
+    .on("click", clicked); // Handles deselecting of a region by clicking in the whitespace.
+
+// SVG group (g) element, to store all the svg map plots.
+var g = svg.append("g");
+
+// SVG text "Correct", displayed when selecting the correct answer.
+var correct = svg.append("svg:text")
+                  .attr("id", "correct")
+                  .attr("x", width / 2 ) // centre label on feature horizontally
+                  .attr("y", height * 2 ) // off screen
+                  .text("CORRECT!");
+
+// SVG text for the score display.
+var scoreDisplay = svg.append("svg:text")
+                      .attr("id", "score")
+                      .attr("x", width / 5 ) // align to the left
+                      .attr("y", height / 5 ) // align to the top
+                      .text("Score: " + score)
+                      .style("fill", "#aaa");
+
+// SVG text for the question.
+var questionText = svg.append("svg:text")
+                      .attr("id", "question")
+                      .attr("x", width / 2 ) // centre label on feature horizontally
+                      .attr("y", 19 * height / 20 ) // align to the bottom
+                      .text("");
+
+
+// Load the geojson file...
+d3.json(url + queryString(request), function(sydney) {
+  // Get the Census csv data and generate the questions.
+  d3.csv(censusUrl, function(data) {
+    completeSetup(sydney, data);
+  });
+});
+
+
+function completeSetup (sydney, data) {
+  // Scale the projection to the geojson features
+  var b = path.bounds(sydney),
+    s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+    t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+
+  // Correctly scales the map projection to fit within the svg.
+  projection
+      .scale(s)
+      .translate(t);
+
+  // Fetch only the relevant stats from the csv input.
+  for (var i = data.length - 1; i >= 0; i--) {
+    for (var j = sydney.features.length - 1; j >= 0; j--) {
+      if (sydney.features[j].properties.SA4_CODE11 == data[i].region_id) {
+        relevantStats.push(data[i]);
+      };
+    };
+  };
+
+  // This 'for' block goes through each column in the census finding the
+  // minimum and maximum and constructing a question from it.
+  for (var key in relevantStats[0]) {
+    if (key == "region_id") {
+      continue;
+    }
+    
+    // Stores the max and min values and associative region ids.
+    var maxVal = -Infinity;
+    var maxRegionId = null;
+    var minVal = Infinity;
+    var minRegionId = null;
+
+    // Get all the values for the current column.
+    var singleColumn = {};
+
+    // Find the minimum and maximum of the current statistic.
+    for (var i = relevantStats.length - 1; i >= 0; i--) {
+      if (relevantStats[i][key] > maxVal) {
+        maxVal = +relevantStats[i][key];
+        maxRegionId = relevantStats[i].region_id;
+      }
+      if (relevantStats[i][key] < minVal) {
+        minVal = +relevantStats[i][key];
+        minRegionId = relevantStats[i].region_id;
+      }
+    };
+
+    // Add the questions to the bank for min and max of current statistic.
+    questions.push({  question : "Highest " + key.split("_").join(" ").toLowerCase(),
+                      answer : maxRegionId.toString(),
+                      value : maxVal});
+    questions.push({  question : "Lowest " + key.split("_").join(" ").toLowerCase(),
+                      answer : minRegionId.toString(),
+                      value : minVal});
+  }
+
+  // Randomise the order of questions.
+  shuffle(questions);
+
+  // Setup the first question.
+  questionText.text(questions[qNum].question + "?");
+
+  // Add all the features to the svg group element. Drawing the map.
+  g.append("g")
+    .selectAll("path")
+      .data(sydney.features)
+    .enter().append("path")
+      .attr("d", path)
+      .style("fill", "#aaa") // Set colour to grey.
+      .on("click", clicked) // Set interation event functions.
+      .on("mouseover", mouseenter)
+      .on("mouseleave", mouseexit)
+      .append("svg:title") // Add a tool tip name.
+      .text( function(d) { return d.properties.SA4_NAME11; } );
+}
+
+
+/*** EVENT HANDLER FUNCTIONS ***/
+
+function mouseenter(d) {
+  // If the region isn't currently selected then highlight it blue.
+  if (selected != d) {
+    d3.select(this).style("fill", "lightskyblue");
+  }
+}
+
+function mouseexit(d) {
+  // Transistion the region colour back to grey.
+  d3.select(this).transition().duration(TRANS_CONST / 2).style("fill", "#aaa");
+  if (selected == d) {
+    // deselect a selected region once the mouse leaves.
+    selected = null;
+  }
+}
+
+function clicked(d) {
+  // Set the region to be selected.
+  if (d) {
+    selected = d;
+  } else {
+    selected = null;
+  }
+
+  // Checks if the clicked id matches the solution to the question..
+  if (d && d.properties.SA4_CODE11 == questions[qNum].answer) {
+    // Correct solution selected.
+
+    // Advance the current question number, wrapping back to the start if necessary.
+    qNum = ++qNum % questions.length;
+    
+    // Fetch the new question text.
+    questionText.text(questions[qNum].question + "?");
+
+    // Colour the region green for a few seconds.
+    d3.select(this).style("fill", "lightseagreen")
+                    .transition().delay(TRANS_CONST).duration(TRANS_CONST)
+                    .style("fill", "#aaa")
+
+
+    // Display correct for a few seconds then hide.
+    correct.transition()
+        .duration(TRANS_CONST)
+        .attr("y", height / 2);
+    setTimeout( function() {correct.transition()
+                              .duration(TRANS_CONST)
+                              .attr("y", height * 2);}, TRANS_CONST * 2);
+
+    // Increase the score.
+    score += correctPoints;
+  } else if (d) {
+    // Incorrect selection, colour the region red for a few seconds.
+    d3.select(this).style("fill", "crimson")
+                    .transition().delay(TRANS_CONST).duration(TRANS_CONST)
+                    .style("fill", "#aaa");
+    // Decrease the score.
+    score -= incorrectPoints;
+  }
+  updateScore();
+}
+
+// Updates the score display, changing colour on +ve or -ve.
+function updateScore () {
+  // Update the score display and colour
+  scoreDisplay.text("Score: " + score);
+  if (score > 0) {
+    // Positive score = green colour.
+    scoreDisplay.style("fill", "lightseagreen");
+  } else if (score < 0) {
+    // Negative score = red colour.
+    scoreDisplay.style("fill", "crimson");
+  } else {
+    // Zero score = grey colour.
+    scoreDisplay.style("fill", "#aaa");
+  }
+}
+
+    </script>
+    <footer>
+    </footer>
+  </body>
+</html>
