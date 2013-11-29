@@ -75,6 +75,7 @@
             this._mouseHandler.destroy();
 
             this._finishHandler(this.getExtent(this._click1, this._click2));
+            this._scene.getPrimitives().remove(this._extentPrimitive);
         };
         
         DrawExtentHelper.prototype.handleRegionInter = function(movement) {
