@@ -10,22 +10,22 @@
     <!-- Copyright National ICT Australia Limited (NICTA) 2013.  -->
 
     <!-- jQuery -->
-    <script src="http://subspace.nicta.com.au/apps/shared/third_party/jquery-1.8.3.min.js"></script>
+    <script src="../shared/third_party/jquery-1.8.3.min.js"></script>
 
     <!-- jQuery UI -->
-    <link rel="stylesheet" href="http://subspace.nicta.com.au/apps/shared/third_party/jquery-ui-1.9.2.custom/css/smoothness/jquery-ui-1.9.2.custom.min.css" />
-    <script src="http://subspace.nicta.com.au/apps/shared/third_party/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.js"></script>
+    <link rel="stylesheet" href="../shared/third_party/jquery-ui-1.9.2.custom/css/smoothness/jquery-ui-1.9.2.custom.min.css" />
+    <script src="../shared/third_party/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.js"></script>
 
-    <script type="text/javascript" src="http://subspace.nicta.com.au/apps/shared/third_party/jquery.csv-0.71.min.js"></script>
+    <script type="text/javascript" src="../shared/third_party/jquery.csv-0.71.min.js"></script>
 
     <!-- Google Charts -->
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
     <!-- Cesium -->
-    <script type="text/javascript" src="../../Build/Cesium/Cesium.js"></script>
-    <link rel="stylesheet" href="../CesiumViewer/CesiumViewer.css" media="screen">
+    <script type="text/javascript" src="../../build/Cesium.js"></script>
+    <link rel="stylesheet" href="../shared/viewer/CesiumViewer.css" media="screen">
 
-    <script src="drawExtent.js"></script>
+    <script src="../shared/viewer/drawExtent.js"></script>
     
 </head>
 <body>
@@ -150,8 +150,9 @@
     //Create a new polygon to view the land cover data
     function createPolygon(e) {
         //Hide the old polygon and create a new one
-    	if (polygon !== undefined) {
-    		polygon.show = false;
+        var old_polygon;
+        if (polygon !== undefined) {
+            old_polygon = polygon;
     	}
     	polygon = new Cesium.ExtentPrimitive({
     	    extent: e,
@@ -200,6 +201,7 @@
                  
                 //And show the polygon
                 polygon.show = true;
+                scene.getPrimitives().remove(old_polygon);
             });
     }
      
@@ -295,10 +297,9 @@
         }
         //Set up the chart options
         var options = {
-            title: 'Land Use',
-            legend: 'none',
+            title: 'Relative Land Use',
             pieSliceText: 'label',
-            width: 300,
+            width: 400,
             height: 300,
             colors: chart_colors
         };
